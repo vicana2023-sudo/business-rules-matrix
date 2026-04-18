@@ -1,0 +1,75 @@
+spring:
+  application:
+    name: business-rules-matrix
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+  jackson:
+    property-naming-strategy: LOWER_CAMEL_CASE
+
+server:
+  port: 8080
+
+decision:
+  rules:
+    - coordinate:
+        customer-type: VIP
+        account-status: ACTIVE
+        product-type: CREDIT
+      rule-type: COMMISSION
+      parameters:
+        commission-percentage: 0.5
+        max-amount: 10000
+    - coordinate:
+        customer-type: REGULAR
+        account-status: ACTIVE
+        product-type: SAVINGS
+      rule-type: DISCOUNT
+      parameters:
+        discount-percentage: 2.0
+    - coordinate:
+        customer-type: NEW
+        account-status: ACTIVE
+        product-type: INVESTMENT
+      rule-type: CREDIT_APPROVAL
+      parameters:
+        min-score: 700
+        max-debt-ratio: 0.4
+    - coordinate:
+        customer-type: VIP
+        account-status: ACTIVE
+        product-type: INVESTMENT
+      rule-type: PREMIUM_BENEFIT
+      parameters:
+        benefit: Personal Advisor Access
+        priority-level: 1
+    - coordinate:
+        customer-type: REGULAR
+        account-status: ACTIVE
+        product-type: CREDIT
+      rule-type: COMMISSION
+      parameters:
+        commission-percentage: 1.5
+        max-amount: 5000
+    - coordinate:
+        customer-type: VIP
+        account-status: ACTIVE
+        product-type: SAVINGS
+      rule-type: DISCOUNT
+      parameters:
+        discount-percentage: 5.0

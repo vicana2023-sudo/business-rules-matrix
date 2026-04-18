@@ -3,12 +3,15 @@ package com.businessrules.matrix.infrastructure.adapter.in.rest;
 import com.businessrules.matrix.application.dto.DecisionRequest;
 import com.businessrules.matrix.application.dto.DecisionResponse;
 import com.businessrules.matrix.application.service.DecisionService;
+import com.businessrules.matrix.domain.model.Account;
+import com.businessrules.matrix.domain.model.Customer;
 import com.businessrules.matrix.domain.port.out.AccountRepository;
 import com.businessrules.matrix.domain.port.out.CustomerRepository;
 import com.businessrules.matrix.domain.rule.RuleEvaluator;
 import com.businessrules.matrix.infrastructure.config.RuleProperties;
+import com.businessrules.matrix.infrastructure.exception.AccountNotFoundException;
+import com.businessrules.matrix.infrastructure.exception.CustomerNotFoundException;
 import jakarta.validation.Valid;
-import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -42,18 +45,16 @@ public class DecisionController {
     }
 
     @GetMapping("/customers/{id}")
-    public Object customer(@PathVariable Long id) {
+    public Customer customer(@PathVariable Long id) {
         log.info("GET /customers/{}", id);
         return customerRepository.findById(id)
-                .<Object>map(value -> value)
-                .orElseGet(() -> Map.of("error", "Customer not found"));
+                .orElseThrow(() -> new CustomerNotFoundException(id));
     }
 
     @GetMapping("/accounts/{id}")
-    public Object account(@PathVariable Long id) {
+    public Account account(@PathVariable Long id) {
         log.info("GET /accounts/{}", id);
         return accountRepository.findById(id)
-                .<Object>map(value -> value)
-                .orElseGet(() -> Map.of("error", "Account not found"));
+                .orElseThrow(() -> new AccountNotFoundException(id));
     }
 }

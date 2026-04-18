@@ -50,11 +50,7 @@ public class RuleEvaluator {
     private Map<RuleCoordinate, BusinessRule> buildMatrix(RuleProperties properties, RuleFactory factory) {
         Map<RuleCoordinate, BusinessRule> matrix = new HashMap<>();
         for (RuleProperties.RuleDefinition definition : properties.getRules()) {
-            RuleCoordinate coordinate = RuleCoordinate.builder()
-                    .customerType(definition.getCoordinate().getCustomerType())
-                    .accountStatus(definition.getCoordinate().getAccountStatus())
-                    .productType(definition.getCoordinate().getProductType())
-                    .build();
+            RuleCoordinate coordinate = toCoordinate(definition.getCoordinate());
             matrix.put(coordinate, factory.createRule(definition.getRuleType(), definition.getParameters(), coordinate));
         }
         return Collections.unmodifiableMap(matrix);
@@ -63,13 +59,17 @@ public class RuleEvaluator {
     private Map<RuleCoordinate, String> buildRuleNames(RuleProperties properties) {
         Map<RuleCoordinate, String> names = new HashMap<>();
         for (RuleProperties.RuleDefinition definition : properties.getRules()) {
-            RuleCoordinate coordinate = RuleCoordinate.builder()
-                    .customerType(definition.getCoordinate().getCustomerType())
-                    .accountStatus(definition.getCoordinate().getAccountStatus())
-                    .productType(definition.getCoordinate().getProductType())
-                    .build();
+            RuleCoordinate coordinate = toCoordinate(definition.getCoordinate());
             names.put(coordinate, String.join("_", coordinate.getCustomerType(), coordinate.getAccountStatus(), coordinate.getProductType(), definition.getRuleType()));
         }
         return Collections.unmodifiableMap(names);
+    }
+
+    private RuleCoordinate toCoordinate(RuleProperties.CoordinateDefinition coordinate) {
+        return RuleCoordinate.builder()
+                .customerType(coordinate.getCustomerType())
+                .accountStatus(coordinate.getAccountStatus())
+                .productType(coordinate.getProductType())
+                .build();
     }
 }

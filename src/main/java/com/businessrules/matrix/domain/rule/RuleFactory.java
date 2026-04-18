@@ -27,11 +27,15 @@ public class RuleFactory {
             case PREMIUM_BENEFIT -> new PremiumBenefitRule(
                     coordinate,
                     String.valueOf(parameters.get("benefit")),
-                    String.valueOf(parameters.get("priority-level")));
+                    toInteger(parameters.get("priority-level")));
         };
     }
 
     private BigDecimal toBigDecimal(Object value) {
         return new BigDecimal(String.valueOf(value));
+    }
+
+    private Integer toInteger(Object value) {
+        return Integer.valueOf(String.valueOf(value));
     }
 }

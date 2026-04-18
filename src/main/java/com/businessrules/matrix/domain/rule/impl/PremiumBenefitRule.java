@@ -10,7 +10,7 @@ public class PremiumBenefitRule implements BusinessRule {
 
     private final RuleCoordinate coordinate;
     private final String benefit;
-    private final String priorityLevel;
+    private final Integer priorityLevel;
 
     @Override
     public String execute(DecisionContext context) {

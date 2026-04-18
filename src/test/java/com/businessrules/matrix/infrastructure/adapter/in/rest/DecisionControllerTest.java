@@ -1,10 +1,12 @@
 package com.businessrules.matrix.infrastructure.adapter.in.rest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.businessrules.matrix.BusinessRulesMatrixApplication;
 import com.businessrules.matrix.application.dto.DecisionRequest;
 import com.businessrules.matrix.application.dto.DecisionResponse;
+import com.businessrules.matrix.infrastructure.exception.CustomerNotFoundException;
 import com.businessrules.matrix.infrastructure.config.RuleProperties;
 import java.math.BigDecimal;
 import org.junit.jupiter.api.Test;
@@ -36,5 +38,11 @@ class DecisionControllerTest {
         RuleProperties rules = controller.listRules();
 
         assertThat(rules.getRules()).hasSize(6);
+    }
+
+    @Test
+    void shouldThrowWhenCustomerDoesNotExist() {
+        assertThatThrownBy(() -> controller.customer(999L))
+                .isInstanceOf(CustomerNotFoundException.class);
     }
 }

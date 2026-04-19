@@ -1,0 +1,17 @@
+{
+  "groups": [
+    {
+      "name": "decision",
+      "type": "com.businessrules.matrix.infrastructure.config.RuleProperties",
+      "sourceType": "com.businessrules.matrix.infrastructure.config.RuleProperties"
+    }
+  ],
+  "properties": [
+    {
+      "name": "decision.rules",
+      "type": "java.util.List<com.businessrules.matrix.infrastructure.config.RuleProperties$RuleDefinition>",
+      "sourceType": "com.businessrules.matrix.infrastructure.config.RuleProperties"
+    }
+  ],
+  "hints": []
+}

@@ -1,0 +1,174 @@
+package rules;
+
+import com.businessrules.matrix.v2.domain.model.DecisionFact;
+import com.businessrules.matrix.v2.domain.model.DecisionOutcome;
+import java.math.BigDecimal;
+
+dialect "java"
+
+rule "TREE_LOAN_VIP_CREDIT_APPROVAL"
+    salience 50
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval("ACTIVE".equals($fact.getAccountStatus()))
+    eval("LOAN".equals($fact.getProductType()))
+    eval("VIP".equals($fact.getCustomerType()))
+    eval($fact.getCreditScore() != null && $fact.getCreditScore() >= 600)
+    eval($fact.getDebtRatio() != null && $fact.getDebtRatio().compareTo(new BigDecimal("0.40")) <= 0)
+    eval($outcome.getDecision() == null)
+then
+    $outcome.setApproved(true);
+    $outcome.setDecision("APPROVED");
+    $outcome.setDetail(String.format("Drools tree approved VIP loan. Score: %d (min: 600), Debt ratio: %.2f (max: 0.40)",
+            $fact.getCreditScore(), $fact.getDebtRatio()));
+    $outcome.setRuleApplied("TREE_LOAN_VIP_CREDIT_APPROVAL");
+    $outcome.setCalculatedValue($fact.getAmount());
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("ACTIVE");
+    $outcome.addBranchStep("LOAN");
+    $outcome.addBranchStep("VIP");
+    update($outcome);
+end
+
+rule "TREE_LOAN_VIP_CREDIT_REJECTION"
+    salience 49
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval("ACTIVE".equals($fact.getAccountStatus()))
+    eval("LOAN".equals($fact.getProductType()))
+    eval("VIP".equals($fact.getCustomerType()))
+    eval($fact.getCreditScore() == null || $fact.getDebtRatio() == null || $fact.getCreditScore() < 600 || $fact.getDebtRatio().compareTo(new BigDecimal("0.40")) > 0)
+    eval($outcome.getDecision() == null)
+then
+    StringBuilder reasons = new StringBuilder("Drools tree rejected VIP loan. Reasons: ");
+    if ($fact.getCreditScore() == null || $fact.getCreditScore() < 600) {
+        reasons.append("credit score below 600. ");
+    }
+    if ($fact.getDebtRatio() == null || $fact.getDebtRatio().compareTo(new BigDecimal("0.40")) > 0) {
+        reasons.append("debt ratio above 0.40.");
+    }
+    $outcome.setApproved(false);
+    $outcome.setDecision("REJECTED");
+    $outcome.setDetail(reasons.toString().trim());
+    $outcome.setRuleApplied("TREE_LOAN_VIP_CREDIT_REJECTION");
+    $outcome.setCalculatedValue($fact.getAmount());
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("ACTIVE");
+    $outcome.addBranchStep("LOAN");
+    $outcome.addBranchStep("VIP");
+    update($outcome);
+end
+
+rule "TREE_LOAN_REGULAR_CREDIT_APPROVAL"
+    salience 50
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval("ACTIVE".equals($fact.getAccountStatus()))
+    eval("LOAN".equals($fact.getProductType()))
+    eval("REGULAR".equals($fact.getCustomerType()))
+    eval($fact.getCreditScore() != null && $fact.getCreditScore() >= 700)
+    eval($fact.getDebtRatio() != null && $fact.getDebtRatio().compareTo(new BigDecimal("0.35")) <= 0)
+    eval($outcome.getDecision() == null)
+then
+    $outcome.setApproved(true);
+    $outcome.setDecision("APPROVED");
+    $outcome.setDetail(String.format("Drools tree approved REGULAR loan. Score: %d (min: 700), Debt ratio: %.2f (max: 0.35)",
+            $fact.getCreditScore(), $fact.getDebtRatio()));
+    $outcome.setRuleApplied("TREE_LOAN_REGULAR_CREDIT_APPROVAL");
+    $outcome.setCalculatedValue($fact.getAmount());
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("ACTIVE");
+    $outcome.addBranchStep("LOAN");
+    $outcome.addBranchStep("REGULAR");
+    update($outcome);
+end
+
+rule "TREE_LOAN_REGULAR_CREDIT_REJECTION"
+    salience 49
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval("ACTIVE".equals($fact.getAccountStatus()))
+    eval("LOAN".equals($fact.getProductType()))
+    eval("REGULAR".equals($fact.getCustomerType()))
+    eval($fact.getCreditScore() == null || $fact.getDebtRatio() == null || $fact.getCreditScore() < 700 || $fact.getDebtRatio().compareTo(new BigDecimal("0.35")) > 0)
+    eval($outcome.getDecision() == null)
+then
+    StringBuilder reasons = new StringBuilder("Drools tree rejected REGULAR loan. Reasons: ");
+    if ($fact.getCreditScore() == null || $fact.getCreditScore() < 700) {
+        reasons.append("credit score below 700. ");
+    }
+    if ($fact.getDebtRatio() == null || $fact.getDebtRatio().compareTo(new BigDecimal("0.35")) > 0) {
+        reasons.append("debt ratio above 0.35.");
+    }
+    $outcome.setApproved(false);
+    $outcome.setDecision("REJECTED");
+    $outcome.setDetail(reasons.toString().trim());
+    $outcome.setRuleApplied("TREE_LOAN_REGULAR_CREDIT_REJECTION");
+    $outcome.setCalculatedValue($fact.getAmount());
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("ACTIVE");
+    $outcome.addBranchStep("LOAN");
+    $outcome.addBranchStep("REGULAR");
+    update($outcome);
+end
+
+rule "TREE_LOAN_NEW_CREDIT_APPROVAL"
+    salience 50
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval("ACTIVE".equals($fact.getAccountStatus()))
+    eval("LOAN".equals($fact.getProductType()))
+    eval("NEW".equals($fact.getCustomerType()))
+    eval($fact.getCreditScore() != null && $fact.getCreditScore() >= 750)
+    eval($fact.getDebtRatio() != null && $fact.getDebtRatio().compareTo(new BigDecimal("0.30")) <= 0)
+    eval($outcome.getDecision() == null)
+then
+    $outcome.setApproved(true);
+    $outcome.setDecision("APPROVED");
+    $outcome.setDetail(String.format("Drools tree approved NEW loan. Score: %d (min: 750), Debt ratio: %.2f (max: 0.30)",
+            $fact.getCreditScore(), $fact.getDebtRatio()));
+    $outcome.setRuleApplied("TREE_LOAN_NEW_CREDIT_APPROVAL");
+    $outcome.setCalculatedValue($fact.getAmount());
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("ACTIVE");
+    $outcome.addBranchStep("LOAN");
+    $outcome.addBranchStep("NEW");
+    update($outcome);
+end
+
+rule "TREE_LOAN_NEW_CREDIT_REJECTION"
+    salience 49
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval("ACTIVE".equals($fact.getAccountStatus()))
+    eval("LOAN".equals($fact.getProductType()))
+    eval("NEW".equals($fact.getCustomerType()))
+    eval($fact.getCreditScore() == null || $fact.getDebtRatio() == null || $fact.getCreditScore() < 750 || $fact.getDebtRatio().compareTo(new BigDecimal("0.30")) > 0)
+    eval($outcome.getDecision() == null)
+then
+    StringBuilder reasons = new StringBuilder("Drools tree rejected NEW loan. Reasons: ");
+    if ($fact.getCreditScore() == null || $fact.getCreditScore() < 750) {
+        reasons.append("credit score below 750. ");
+    }
+    if ($fact.getDebtRatio() == null || $fact.getDebtRatio().compareTo(new BigDecimal("0.30")) > 0) {
+        reasons.append("debt ratio above 0.30.");
+    }
+    $outcome.setApproved(false);
+    $outcome.setDecision("REJECTED");
+    $outcome.setDetail(reasons.toString().trim());
+    $outcome.setRuleApplied("TREE_LOAN_NEW_CREDIT_REJECTION");
+    $outcome.setCalculatedValue($fact.getAmount());
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("ACTIVE");
+    $outcome.addBranchStep("LOAN");
+    $outcome.addBranchStep("NEW");
+    update($outcome);
+end
+
+

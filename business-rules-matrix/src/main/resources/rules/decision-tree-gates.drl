@@ -1,0 +1,61 @@
+package rules;
+
+import com.businessrules.matrix.v2.domain.model.DecisionFact;
+import com.businessrules.matrix.v2.domain.model.DecisionOutcome;
+
+dialect "java"
+
+rule "TREE_GATE_SUSPENDED_ACCOUNT"
+    salience 100
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval("SUSPENDED".equals($fact.getAccountStatus()))
+    eval($outcome.getDecision() == null)
+then
+    $outcome.setApproved(false);
+    $outcome.setDecision("REJECTED");
+    $outcome.setDetail("Drools tree rejected the request because the account is suspended.");
+    $outcome.setRuleApplied("TREE_GATE_SUSPENDED_ACCOUNT");
+    $outcome.setCalculatedValue($fact.getAmount());
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("ACCOUNT_STATUS:SUSPENDED");
+    update($outcome);
+end
+
+rule "TREE_GATE_CLOSED_ACCOUNT"
+    salience 100
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval("CLOSED".equals($fact.getAccountStatus()))
+    eval($outcome.getDecision() == null)
+then
+    $outcome.setApproved(false);
+    $outcome.setDecision("REJECTED");
+    $outcome.setDetail("Drools tree rejected the request because the account is closed.");
+    $outcome.setRuleApplied("TREE_GATE_CLOSED_ACCOUNT");
+    $outcome.setCalculatedValue($fact.getAmount());
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("ACCOUNT_STATUS:CLOSED");
+    update($outcome);
+end
+
+rule "TREE_FALLBACK_NO_RULE_CONFIGURED"
+    salience -100
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval($outcome.getDecision() == null)
+then
+    $outcome.setApproved(false);
+    $outcome.setDecision("REJECTED");
+    $outcome.setDetail("Drools tree has no configured terminal node for the received customer type, account status and product type.");
+    $outcome.setRuleApplied("TREE_FALLBACK_NO_RULE_CONFIGURED");
+    $outcome.setCalculatedValue($fact.getAmount());
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("UNCONFIGURED_PATH");
+    update($outcome);
+end
+
+

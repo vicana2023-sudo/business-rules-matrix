@@ -1,0 +1,24 @@
+package com.businessrules.matrix.v2.infrastructure.adapter.out.persistence.entity;
+import jakarta.persistence.*;
+import lombok.*;
+import java.math.BigDecimal;
+@Data @Builder @NoArgsConstructor @AllArgsConstructor
+@Entity(name = "V2AccountEntity")
+@Table(name = "account")
+public class AccountEntity {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @Column(name = "account_number", nullable = false, unique = true)
+    private String accountNumber;
+    @Column(name = "customer_id", nullable = false)
+    private Long customerId;
+    @Column(name = "account_status", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private AccountStatusEnum accountStatus;
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal balance;
+    @Column(name = "debt_ratio", nullable = false, precision = 5, scale = 4)
+    private BigDecimal debtRatio;
+    public enum AccountStatusEnum { ACTIVE, SUSPENDED, CLOSED }
+}

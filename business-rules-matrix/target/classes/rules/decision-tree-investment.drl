@@ -1,0 +1,84 @@
+package rules;
+
+import com.businessrules.matrix.v2.domain.model.DecisionFact;
+import com.businessrules.matrix.v2.domain.model.DecisionOutcome;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+dialect "java"
+
+rule "TREE_INVESTMENT_VIP_PREMIUM_BENEFIT"
+    salience 40
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval("ACTIVE".equals($fact.getAccountStatus()))
+    eval("INVESTMENT".equals($fact.getProductType()))
+    eval("VIP".equals($fact.getCustomerType()))
+    eval($outcome.getDecision() == null)
+then
+    $outcome.setApproved(true);
+    $outcome.setDecision("APPROVED");
+    $outcome.setDetail(String.format("Drools tree granted VIP investment benefit to %s: Exclusive VIP investment package with priority access",
+            $fact.getCustomerName()));
+    $outcome.setRuleApplied("TREE_INVESTMENT_VIP_PREMIUM_BENEFIT");
+    $outcome.setCalculatedValue($fact.getAmount());
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("ACTIVE");
+    $outcome.addBranchStep("INVESTMENT");
+    $outcome.addBranchStep("VIP");
+    update($outcome);
+end
+
+rule "TREE_INVESTMENT_REGULAR_DISCOUNT"
+    salience 40
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval("ACTIVE".equals($fact.getAccountStatus()))
+    eval("INVESTMENT".equals($fact.getProductType()))
+    eval("REGULAR".equals($fact.getCustomerType()))
+    eval($outcome.getDecision() == null)
+then
+    BigDecimal discountAmount = $fact.getAmount().multiply(new BigDecimal("10"))
+            .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+    BigDecimal finalAmount = $fact.getAmount().subtract(discountAmount);
+    $outcome.setApproved(true);
+    $outcome.setDecision("APPROVED");
+    $outcome.setDetail(String.format("Drools tree applied 10.00%% investment discount. Discount amount: %.2f. Final amount: %.2f",
+            discountAmount, finalAmount));
+    $outcome.setRuleApplied("TREE_INVESTMENT_REGULAR_DISCOUNT");
+    $outcome.setCalculatedValue(finalAmount);
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("ACTIVE");
+    $outcome.addBranchStep("INVESTMENT");
+    $outcome.addBranchStep("REGULAR");
+    update($outcome);
+end
+
+rule "TREE_INVESTMENT_NEW_COMMISSION"
+    salience 40
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval("ACTIVE".equals($fact.getAccountStatus()))
+    eval("INVESTMENT".equals($fact.getProductType()))
+    eval("NEW".equals($fact.getCustomerType()))
+    eval($outcome.getDecision() == null)
+then
+    BigDecimal commission = $fact.getAmount().multiply(new BigDecimal("2.5"))
+            .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+    $outcome.setApproved(true);
+    $outcome.setDecision("APPROVED");
+    $outcome.setDetail(String.format("Drools tree applied 2.50%% investment commission. Commission amount: %.2f",
+            commission));
+    $outcome.setRuleApplied("TREE_INVESTMENT_NEW_COMMISSION");
+    $outcome.setCalculatedValue(commission);
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("ACTIVE");
+    $outcome.addBranchStep("INVESTMENT");
+    $outcome.addBranchStep("NEW");
+    update($outcome);
+end
+
+

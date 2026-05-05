@@ -1,0 +1,61 @@
+package rules;
+
+import com.businessrules.matrix.v2.domain.model.DecisionFact;
+import com.businessrules.matrix.v2.domain.model.DecisionOutcome;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+
+dialect "java"
+
+rule "TREE_INSURANCE_VIP_DISCOUNT"
+    salience 40
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval("ACTIVE".equals($fact.getAccountStatus()))
+    eval("INSURANCE".equals($fact.getProductType()))
+    eval("VIP".equals($fact.getCustomerType()))
+    eval($outcome.getDecision() == null)
+then
+    BigDecimal discountAmount = $fact.getAmount().multiply(new BigDecimal("20"))
+            .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+    BigDecimal finalAmount = $fact.getAmount().subtract(discountAmount);
+    $outcome.setApproved(true);
+    $outcome.setDecision("APPROVED");
+    $outcome.setDetail(String.format("Drools tree applied 20.00%% insurance discount. Discount amount: %.2f. Final amount: %.2f",
+            discountAmount, finalAmount));
+    $outcome.setRuleApplied("TREE_INSURANCE_VIP_DISCOUNT");
+    $outcome.setCalculatedValue(finalAmount);
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("ACTIVE");
+    $outcome.addBranchStep("INSURANCE");
+    $outcome.addBranchStep("VIP");
+    update($outcome);
+end
+
+rule "TREE_INSURANCE_REGULAR_COMMISSION"
+    salience 40
+when
+    $fact : DecisionFact()
+    $outcome : DecisionOutcome()
+    eval("ACTIVE".equals($fact.getAccountStatus()))
+    eval("INSURANCE".equals($fact.getProductType()))
+    eval("REGULAR".equals($fact.getCustomerType()))
+    eval($outcome.getDecision() == null)
+then
+    BigDecimal commission = $fact.getAmount().multiply(new BigDecimal("5.0"))
+            .divide(new BigDecimal("100"), 2, RoundingMode.HALF_UP);
+    $outcome.setApproved(true);
+    $outcome.setDecision("APPROVED");
+    $outcome.setDetail(String.format("Drools tree applied 5.00%% insurance commission. Commission amount: %.2f",
+            commission));
+    $outcome.setRuleApplied("TREE_INSURANCE_REGULAR_COMMISSION");
+    $outcome.setCalculatedValue(commission);
+    $outcome.addBranchStep("ROOT");
+    $outcome.addBranchStep("ACTIVE");
+    $outcome.addBranchStep("INSURANCE");
+    $outcome.addBranchStep("REGULAR");
+    update($outcome);
+end
+
+

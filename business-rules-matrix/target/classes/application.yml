@@ -97,3 +97,11 @@ decision:
       ruleType: COMMISSION
       parameters:
         commissionPercentage: 5.0
+
+decision-tree:
+  rule-files:
+    - rules/decision-tree-gates.drl
+    - rules/decision-tree-loan.drl
+    - rules/decision-tree-investment.drl
+    - rules/decision-tree-insurance.drl
+
